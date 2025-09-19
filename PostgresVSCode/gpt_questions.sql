@@ -61,11 +61,74 @@ WITH cte AS (
         JOIN rental r ON c.customer_id = r.customer_id
     GROUP BY c.customer_id
 )
-SELECT *,
+SELECT first_name,
+    last_name,
+    total_rentals,
     DENSE_RANK() OVER(
         ORDER BY total_rentals DESC
     )
 FROM cte;
 
 -- Q8: Find the top 3 categories (from the category table) that generated the highest total revenue. Show category_name and total_revenue.
+SELECT c.name,
+    SUM(p.amount) AS total_revenue
+FROM category c
+    JOIN film_category fc ON c.category_id = fc.category_id
+    JOIN inventory i ON fc.film_id = i.film_id
+    JOIN rental r ON i.inventory_id = r.inventory_id
+    JOIN payment p ON r.rental_id = p.rental_id
+GROUP BY c.name
+ORDER BY total_revenue DESC
+LIMIT 3;
 
+-- Q9: For each customer, find their most recent rental date. Show customer_id, first_name, last_name, and last_rental_date.
+SELECT c.customer_id,
+    c.first_name,
+    c.last_name,
+    MAX(r.rental_date) AS last_rental_date
+FROM customer c
+    JOIN rental r ON c.customer_id = r.customer_id
+GROUP BY c.customer_id
+ORDER BY c.customer_id;
+
+-- Find each customer’s most recent rental using a window function. Show: customer_id, first_name, last_name, rental_date (only the latest one per customer)
+SELECT customer_id,
+    first_name,
+    last_name,
+    rental_date
+FROM (
+        SELECT c.customer_id,
+            c.first_name,
+            c.last_name,
+            r.rental_date,
+            ROW_NUMBER() OVER(
+                PARTITION BY c.customer_id
+                ORDER BY r.rental_date DESC
+            ) AS rn
+        FROM customer c
+            JOIN rental r ON c.customer_id = r.customer_id
+    )
+WHERE rn = 1;
+
+-- Q11: Find the actor(s) who appear in the most films. Show actor_id, first_name, last_name, and film_count.
+
+
+-- Q12 Find all customers who have made more than 30 rentals. Show customer_id, first_name, last_name, and their total rental count.
+
+-- Q13 Find the month with the highest total revenue. Show the month (e.g., 2005-07) and the total revenue.
+-- (Hint: Use DATE_TRUNC('month', payment_date).)
+
+-- Q14 List the top 5 customers by revenue. Show customer_id, first_name, last_name, and total revenue spent.
+
+-- Q15 Find all films whose rental rate is higher than the average rental rate of all films. Show film_id, title, and rental_rate.
+
+-- Q16 For each film, calculate the percentile rank of its rental rate compared to other films. Show film_id, title, rental_rate, and percent_rank.
+
+-- Q17 Find all films that were never rented. Show film_id and title.
+
+-- Q18 Using a CTE, calculate the total revenue per store, then find which store earned more. Show store_id and total_revenue.
+
+-- Q19 Find the total revenue grouped by category and by store in a single query.
+-- (Hint: Use GROUPING SETS.)
+
+-- Q20 For each film category, rank films by their total revenue within that category. Show category_name, film_id, title, total_revenue, and rank_in_category.

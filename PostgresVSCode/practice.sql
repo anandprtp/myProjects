@@ -19,4 +19,3 @@ SELECT COUNT(DISTINCT first_name) FROM actor;
 SELECT COUNT(*) FROM payment;
 
 SELECT COUNT(DISTINCT amount) FROM payment;
-
